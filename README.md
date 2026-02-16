@@ -1,5 +1,10 @@
 # LatentForge
 
+[![Nix Flake](https://img.shields.io/badge/nix-flake-blue?logo=nixos)](https://nixos.org)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-3776ab?logo=python&logoColor=white)](https://python.org)
+[![License: MIT](https://img.shields.io/github/license/utensils/latentforge)](LICENSE)
+[![Claude Agent SDK](https://img.shields.io/badge/powered%20by-Claude%20Agent%20SDK-cc785c?logo=anthropic&logoColor=white)](https://github.com/anthropics/claude-agent-sdk-python)
+
 Interactive CLI for building high-quality image datasets for [Flux](https://github.com/black-forest-labs/flux) LoRA fine-tuning, powered by the [Claude Agent SDK](https://github.com/anthropics/claude-agent-sdk-python).
 
 Tell the agent what you want a dataset for — it searches, downloads, organizes, curates, deduplicates, resizes, and captions images through natural language conversation.
@@ -24,7 +29,7 @@ uv tool install latentforge
 
 # Run
 latentforge                              # interactive — no config
-latentforge --config configs/mcr.yaml    # with a dataset config
+latentforge --config configs/ghibli.yaml  # with a dataset config
 ```
 
 ### Development

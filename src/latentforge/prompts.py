@@ -67,11 +67,11 @@ Note: download_images and download_gallery automatically filter out obvious scre
 ## Captioning Guidelines
 
 Captions should:
-- Start with the trigger word (e.g., "mcr_style, ...")
+- Start with the trigger word (e.g., "ghibli_style, ...")
 - Be descriptive but concise (1-2 sentences)
 - Describe the visual content, style, colors, and composition
 - Mention the subject naturally
-- Example: "mcr_style, black and red album cover art featuring a marching band skeleton in military uniform, gothic typography"
+- Example: "ghibli_style, lush green hillside with a small cottage, soft watercolor clouds, Studio Ghibli background art"
 
 ## Workflow
 

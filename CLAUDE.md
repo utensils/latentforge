@@ -4,123 +4,83 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Purpose
 
-LatentForge — an interactive image dataset collection and curation tool for LoRA training, powered by the Claude Agent SDK. MCR (My Chemical Romance) is the first dataset, but the tool works for any subject.
+LatentForge — interactive CLI for building image datasets for Flux LoRA fine-tuning, powered by the Claude Agent SDK. Users chat with a Claude agent that has 22 custom MCP tools for searching, downloading, curating, and exporting images.
+
+## Commands
+
+```bash
+# Run
+nix develop                              # devshell with all deps
+latentforge                              # launch agent (no config)
+latentforge --config configs/foo.yaml    # launch with dataset config
+uv run latentforge                       # without nix
+
+# Development
+nix fmt              # format nix + python (nixfmt + ruff via treefmt)
+ruff check src/      # lint
+ruff format src/     # format python only
+pyright src/         # type check (basic mode)
+nix build            # build package
+nix run . -- --help  # run from nix build result
+```
 
 ## Architecture
 
 ```
-User runs CLI → launches interactive Claude agent (Agent SDK)
-  → Agent has custom MCP tools for image ops
-  → Agent uses built-in Read tool for vision (viewing images)
-  → Agent uses built-in Write tool for files
-  → User chats to guide: "build me an MCR dataset", "curate the album covers", etc.
+src/latentforge/
+  agent.py    — CLI entry point, interactive REPL, session management
+  tools.py    — 22 MCP tools registered via @tool decorator
+  prompts.py  — System prompt builder, injects dataset config context
 ```
 
-## Running the Agent
+**agent.py** is the core: it creates a `ClaudeSDKClient`, connects with `ClaudeAgentOptions`, and runs an interactive loop. Key patterns:
+- `cli()` is the sync entry point (`asyncio.run(main())`)
+- `_build_options()` constructs `ClaudeAgentOptions` with MCP server, allowed tools, and permission mode
+- `_print_response()` consumes the async message stream, rendering `TextBlock` as markdown and `ToolUseBlock` as tool indicators
+- `SessionStats` tracks token usage and cost; `context_bar()` renders the status line
+- Client-side compaction: `_compact_session()` asks the agent to summarize, disconnects, starts a fresh session with the summary injected. Auto-triggers at 75% context usage.
+- Slash commands (`/help`, `/model`, `/export`, `/compact`, etc.) are handled locally via `SlashCommands` class — they raise sentinel exceptions (`_CompactRequest`, `_ModelChangeRequest`, `_ExportRequest`) to signal the main loop
 
-```bash
-# Nix (recommended)
-nix develop          # enters devshell with all deps
-latentforge          # run the agent
-latentforge --config configs/mcr.yaml  # with MCR config
+**tools.py** uses the `@tool` decorator from `claude_agent_sdk`. Each tool is an async function that takes `args: dict[str, Any]` and returns a dict with `content` (list of text blocks) and optional `is_error`. Use `_text()` and `_error()` helpers for responses. All tools are collected in the `ALL_TOOLS` list at the bottom.
 
-# Or without Nix
-uv run latentforge
-uv run latentforge --config configs/mcr.yaml
-```
+**prompts.py** builds the system prompt. When a config path is provided, it appends an "Active Dataset" section with subject, trigger word, categories, and target counts.
 
-## Development Commands
+## Adding a New Tool
 
-```bash
-nix fmt              # format nix + python files (nixfmt + ruff)
-ruff check src/      # lint python
-ruff format src/     # format python only
-pyright src/         # type check
-nix build            # build the package
-nix run . -- --help  # run from nix build
-```
+1. Add an async function in `tools.py` with the `@tool` decorator
+2. Use `_text(msg)` for success, `_error(msg)` for errors
+3. Add it to the `ALL_TOOLS` list at the bottom of the file
+4. The tool is automatically available to the agent — no changes needed in `agent.py`
 
-## Key Files
+## Build System
 
-| File | Purpose |
-|------|---------|
-| `src/latentforge/agent.py` | CLI entry point — launches interactive Claude agent |
-| `src/latentforge/tools.py` | Custom MCP tools (config, search, download, curation, quality) |
-| `src/latentforge/prompts.py` | System prompt builder — injects dataset config context |
-| `pyproject.toml` | Package metadata, dependencies, build config |
-| `flake.nix` | Nix flake — uv2nix build, devshell, treefmt |
-| `configs/mcr.yaml` | MCR dataset config (search queries, categories, curation settings) |
+- **Python packaging**: hatchling with `src/` layout (`[tool.hatch.build.targets.wheel] packages = ["src/latentforge"]`)
+- **Nix flake**: uv2nix derives the build from `pyproject.toml` + `uv.lock`. Uses `self` as `workspaceRoot` for fast eval. `sourcePreference = "wheel"` avoids building C extensions from source.
+- **Formatting**: treefmt-nix wraps nixfmt-rfc-style (`.nix`) and ruff-format (`.py`); exposed as `formatter` output for `nix fmt`
+- After changing dependencies: run `uv lock` then `nix flake update` if needed
 
 ## Dataset Config Format
 
-Each dataset is a YAML file in `configs/` (e.g., `configs/mcr.yaml`):
+YAML files in `configs/` define datasets. The agent creates these via `create_config`, or users write them by hand:
 
 ```yaml
-name: mcr
-subject: "My Chemical Romance"
-trigger_word: "mcr_style"
-output_dir: ./datasets/mcr
+name: ghibli
+subject: "Studio Ghibli"
+trigger_word: "ghibli_style"
+output_dir: ./datasets/ghibli
 search_queries:
-  album_covers:
-    - "My Chemical Romance The Black Parade album cover"
-  logos:
-    - "My Chemical Romance logo"
+  posters:
+    - "Studio Ghibli movie poster art"
 categories:
-  album_covers: "Album, EP, and single cover art"
-  logos: "Band logos, emblems, icons"
+  posters: "Movie poster art"
 curation:
   target_count: "50-150"
   min_resolution: 512
   training_resolution: 1024
 ```
 
-## Custom MCP Tools (tools.py)
+Images are stored as `datasets/<name>/<category>/{prefix}_{md5_hash_12chars}.{ext}` with optional `.txt` caption sidecar files. Both `datasets/` and `configs/` contents are gitignored (only `.gitkeep` is tracked).
 
-| Tool | Purpose |
-|------|---------|
-| `create_config` | Generate a new dataset YAML config |
-| `read_config` | Load and return a dataset config |
-| `update_config` | Update fields in an existing config |
-| `list_configs` | List available configs in `configs/` |
-| `search_bing` | Search Bing Images, return URLs |
-| `search_wikimedia` | Search Wikimedia Commons API |
-| `download_images` | Download URLs to a category dir with MD5 dedup |
-| `download_gallery` | Download from 80+ sites via gallery-dl |
-| `list_images` | List images with metadata (path, size, resolution) |
-| `get_image_info` | Detailed info for one image |
-| `move_images` | Move images between categories or to `rejected/` |
-| `organize_images` | Auto-sort images by filename prefix |
-| `analyze_quality` | Resolution distribution, file sizes, format stats |
-| `find_duplicates` | Perceptual hash (phash) duplicate detection |
-| `resize_images` | Batch resize to training resolution |
-| `write_caption` | Write a .txt caption file alongside an image |
-| `detect_screenshots` | Find and reject social media screenshots and text-only posts |
-| `crop_center` | Center-crop images to square |
-| `crop_smart` | Smart-crop to highest-entropy region |
-| `detect_faces` | Detect faces and report bounding boxes |
-| `crop_faces` | Crop around detected faces with padding |
-| `export_dataset` | Export dataset to ai-toolkit format (flat dir + training config) |
+## Lint Exceptions
 
-## Dataset Structure
-
-Datasets live under `datasets/<name>/` with category subdirectories:
-
-```
-datasets/
-└── mcr/
-    ├── album_covers/   — Album, EP, and single cover art
-    ├── band_photos/    — Promo shots, live concert photos
-    ├── eras/           — Era-specific imagery
-    ├── fan_art/        — Fan-made graphic design and illustration
-    ├── logos/          — Band logos, spider, killjoy, Black Parade emblems
-    ├── merch/          — T-shirts, hoodies, vintage tees
-    └── posters/        — Concert, tour, and gig poster art
-```
-
-Each dataset config's `output_dir` points to its directory (e.g., `./datasets/mcr`). Adding a new dataset creates a new subdirectory (e.g., `./datasets/pokemon`).
-
-## Image Naming Convention
-
-Files follow the pattern: `{search_query_prefix}_{md5_hash_12chars}.{ext}`
-
-The MD5 hash prefix ensures deduplication across runs — re-running scripts won't create duplicates.
+- `src/latentforge/prompts.py` has E501 suppressed (long system prompt strings)

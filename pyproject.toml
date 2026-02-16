@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "latentforge"
+version = "0.1.0"
+description = "Interactive image dataset collection and curation tool for LoRA training, powered by Claude Agent SDK"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+authors = [
+    { name = "James Brink", email = "brink.james@gmail.com" },
+]
+keywords = ["lora", "dataset", "image", "training", "flux", "claude"]
+dependencies = [
+    "claude-agent-sdk",
+    "pyyaml",
+    "requests",
+    "beautifulsoup4",
+    "pillow",
+    "imagehash",
+    "rich",
+    "opencv-python-headless",
+]
+
+[project.scripts]
+latentforge = "latentforge.agent:cli"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/latentforge"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/latentforge/prompts.py" = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pyright]
+typeCheckingMode = "basic"
+pythonVersion = "3.12"

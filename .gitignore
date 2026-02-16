@@ -1,0 +1,39 @@
+# Datasets — images, captions, and generated assets
+datasets/**
+!datasets/.gitkeep
+configs/**
+!configs/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+dist/
+build/
+.python-version
+
+# Nix
+result
+.direnv/
+
+# Agent / runtime
+.env
+rejected/
+curation_report.json
+
+# ai-toolkit exports
+*_lora.yaml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

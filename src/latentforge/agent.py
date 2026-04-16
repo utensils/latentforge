@@ -55,7 +55,9 @@ SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇",
 # Context window size by model (tokens)
 MODEL_CONTEXT = {
     "claude-sonnet-4-5": 200_000,
+    "claude-sonnet-4-6": 200_000,
     "claude-opus-4-6": 200_000,
+    "claude-opus-4-7": 200_000,
     "claude-haiku-4-5": 200_000,
 }
 DEFAULT_CONTEXT = 200_000

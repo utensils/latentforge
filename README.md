@@ -161,6 +161,13 @@ Images follow the naming pattern `{query_prefix}_{md5_hash}.{ext}` — the MD5 h
 8. **Export** — Export to ai-toolkit format with auto-generated training config
 9. **Train** — Use [ai-toolkit](https://github.com/ostris/ai-toolkit), [kohya-ss/sd-scripts](https://github.com/kohya-ss/sd-scripts), or similar
 
+## Requirements
+
+- Python 3.12+
+- Either [Nix](https://nixos.org) (flakes enabled) or [uv](https://github.com/astral-sh/uv)
+- `gallery-dl` for multi-site downloads (provided by the Nix devshell)
+- An Anthropic API key or Claude Code OAuth token (see below)
+
 ## Authentication
 
 Set one of:

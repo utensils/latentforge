@@ -790,6 +790,140 @@ async def write_caption(args: dict[str, Any]) -> dict[str, Any]:
 
 
 @tool(
+    "validate_dataset",
+    "Check dataset health: missing/empty captions, low-res images, orphaned files",
+    {
+        "directory": str,
+        "config_path": str,
+        "min_resolution": float,
+    },
+)
+async def validate_dataset(args: dict[str, Any]) -> dict[str, Any]:
+    directory = Path(args["directory"])
+    if not directory.exists():
+        return _error(f"Directory not found: {directory}")
+
+    # Resolve min_resolution: explicit arg > config > default 512
+    min_res = int(args.get("min_resolution", 0))
+    config_path = args.get("config_path", "")
+    if not min_res and config_path:
+        cp = Path(config_path)
+        if cp.exists():
+            config = yaml.safe_load(cp.read_text())
+            min_res = config.get("curation", {}).get("min_resolution", 512)
+    if not min_res:
+        min_res = 512
+
+    # Collect all images and caption files
+    images: list[Path] = []
+    for ext in IMAGE_EXTS:
+        images.extend(directory.rglob(f"*{ext}"))
+    images.sort()
+
+    caption_files: set[Path] = set()
+    for txt in directory.rglob("*.txt"):
+        caption_files.add(txt)
+
+    if not images and not caption_files:
+        return _text(f"No images or caption files found in {directory}")
+
+    # Build set of image stems (relative to directory) for orphan detection
+    image_stems: set[Path] = set()
+    for img in images:
+        image_stems.add(img.with_suffix(".txt"))
+
+    # Analyze
+    total_size = 0
+    missing_captions: list[str] = []
+    empty_captions: list[str] = []
+    low_res: list[str] = []
+    unreadable: list[str] = []
+
+    for img_path in images:
+        total_size += img_path.stat().st_size
+        caption_path = img_path.with_suffix(".txt")
+
+        # Caption checks
+        if caption_path not in caption_files:
+            missing_captions.append(str(img_path.relative_to(directory)))
+        elif caption_path.read_text().strip() == "":
+            empty_captions.append(str(img_path.relative_to(directory)))
+
+        # Resolution check
+        try:
+            with Image.open(img_path) as im:
+                w, h = im.size
+                if min(w, h) < min_res:
+                    low_res.append(
+                        f"{img_path.relative_to(directory)} ({w}x{h})"
+                    )
+        except Exception:
+            unreadable.append(str(img_path.relative_to(directory)))
+
+    # Orphaned captions (no matching image)
+    orphaned = sorted(
+        str(cf.relative_to(directory))
+        for cf in caption_files
+        if cf not in image_stems
+    )
+
+    # Build report
+    size_mb = total_size / (1024 * 1024)
+    lines = [
+        f"Dataset Validation: {directory}",
+        f"{'=' * 50}",
+        "",
+        "Overview:",
+        f"  Images:     {len(images)}",
+        f"  Total size: {size_mb:.1f} MB",
+        f"  Min resolution threshold: {min_res}px (shortest side)",
+    ]
+
+    issues_found = False
+
+    if missing_captions:
+        issues_found = True
+        lines.append("")
+        lines.append(f"Missing captions ({len(missing_captions)}):")
+        for f in missing_captions:
+            lines.append(f"  {f}")
+
+    if empty_captions:
+        issues_found = True
+        lines.append("")
+        lines.append(f"Empty captions ({len(empty_captions)}):")
+        for f in empty_captions:
+            lines.append(f"  {f}")
+
+    if low_res:
+        issues_found = True
+        lines.append("")
+        lines.append(f"Below minimum resolution ({len(low_res)}):")
+        for f in low_res:
+            lines.append(f"  {f}")
+
+    if orphaned:
+        issues_found = True
+        lines.append("")
+        lines.append(f"Orphaned caption files ({len(orphaned)}):")
+        for f in orphaned:
+            lines.append(f"  {f}")
+
+    if unreadable:
+        issues_found = True
+        lines.append("")
+        lines.append(f"Unreadable images ({len(unreadable)}):")
+        for f in unreadable:
+            lines.append(f"  {f}")
+
+    if not issues_found:
+        lines.append("")
+        lines.append("No issues found. Dataset looks healthy!")
+
+    return _text("\n".join(lines))
+
+
+@tool(
     "detect_screenshots",
     "Find social media screenshots and text-only posts in a directory",
     {
@@ -1363,6 +1497,7 @@ ALL_TOOLS = [
     find_duplicates,
     resize_images,
     write_caption,
+    validate_dataset,
     detect_screenshots,
     # Cropping & face detection
     crop_center,

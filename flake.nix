@@ -127,6 +127,8 @@
               pkgs.gallery-dl
               pkgs.ruff
               pkgs.pyright
+              pkgs.nodejs_22
+              pkgs.pnpm
             ]
             ++ linuxGpuPkgs;
 
@@ -189,6 +191,22 @@
                   done
                 fi
                 echo ""
+              }
+
+              docs-dev() {
+                if [ ! -d docs/node_modules ]; then
+                  (cd docs && pnpm install)
+                fi
+                python scripts/gen_tools_docs.py
+                pnpm --dir docs dev
+              }
+
+              docs-build() {
+                if [ ! -d docs/node_modules ]; then
+                  (cd docs && pnpm install)
+                fi
+                python scripts/gen_tools_docs.py
+                pnpm --dir docs build
               }
             '';
           };

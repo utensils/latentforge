@@ -18,6 +18,11 @@ build/
 result
 .direnv/
 
+# VitePress docs site
+docs/node_modules/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+
 # Agent / runtime
 .env
 rejected/

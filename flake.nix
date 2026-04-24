@@ -127,6 +127,8 @@
               pkgs.gallery-dl
               pkgs.ruff
               pkgs.pyright
+              pkgs.nodejs_22
+              pkgs.pnpm
             ]
             ++ linuxGpuPkgs;
 

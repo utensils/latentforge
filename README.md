@@ -9,6 +9,8 @@ Interactive CLI for building high-quality image datasets for [Flux](https://gith
 
 Tell the agent what you want a dataset for — it searches, downloads, organizes, curates, deduplicates, resizes, and captions images through natural language conversation.
 
+**📖 Full documentation:** run `pnpm run docs:dev` or browse the `docs/` directory. See [Getting Started](docs/guide/getting-started.md), [Architecture](docs/guide/architecture.md), and the [Tools Reference](docs/api/tools.md).
+
 ## Quick Start
 
 ### Run directly (no install)

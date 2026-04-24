@@ -9,6 +9,8 @@ Interactive CLI for building high-quality image datasets for [Flux](https://gith
 
 Tell the agent what you want a dataset for — it searches, downloads, organizes, curates, deduplicates, resizes, and captions images through natural language conversation.
 
+**Documentation:** a full [Getting Started guide](docs/guide/getting-started.md), [dataset config reference](docs/guide/configuration.md), and [MCP tools reference](docs/tools/reference.md) live under `docs/`. Run `docs-dev` inside `nix develop` for a hot-reloading local preview.
+
 ## Quick Start
 
 ### Run directly (no install)

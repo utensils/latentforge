@@ -50,7 +50,17 @@ src/latentforge/
 1. Add an async function in `tools.py` with the `@tool` decorator
 2. Use `_text(msg)` for success, `_error(msg)` for errors
 3. Add it to the `ALL_TOOLS` list at the bottom of the file
-4. The tool is automatically available to the agent — no changes needed in `agent.py`
+4. Classify it under a category in `scripts/gen_tools_docs.py::CATEGORIES` (otherwise it lands in an "Uncategorised" section of the docs)
+5. The tool is automatically available to the agent — no changes needed in `agent.py`
+
+## Docs Site
+
+VitePress-based docs live under `docs/`. Inside `nix develop`:
+
+- `docs-dev` — installs node deps if needed, regenerates the tools reference, starts the hot-reload dev server (http://localhost:5173).
+- `docs-build` — production build into `docs/.vitepress/dist/`.
+
+`docs/tools/reference.md` is **auto-generated** from `src/latentforge/tools.py::ALL_TOOLS` by `scripts/gen_tools_docs.py` — do not edit it by hand. The `docs-build` CI workflow fails if the committed file drifts from the generator output.
 
 ## Build System
 

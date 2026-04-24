@@ -1,0 +1,45 @@
+name: docs-build
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'scripts/gen_tools_docs.py'
+      - 'src/latentforge/tools.py'
+      - '.github/workflows/docs-build.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'scripts/gen_tools_docs.py'
+      - 'src/latentforge/tools.py'
+      - '.github/workflows/docs-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Regenerate tools reference
+        run: nix develop --command python scripts/gen_tools_docs.py
+
+      - name: Verify tools reference is up to date
+        run: |
+          if ! git diff --exit-code docs/tools/reference.md; then
+            echo "::error::docs/tools/reference.md is out of date."
+            echo "Run 'python scripts/gen_tools_docs.py' (or 'docs-build' in the devshell) and commit the result."
+            exit 1
+          fi
+
+      - name: Install docs dependencies
+        run: nix develop --command bash -c "cd docs && pnpm install --frozen-lockfile=false"
+
+      - name: Build docs site
+        run: nix develop --command pnpm --dir docs build

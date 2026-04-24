@@ -22,6 +22,12 @@ ruff format src/     # format python only
 pyright src/         # type check (basic mode)
 nix build            # build package
 nix run . -- --help  # run from nix build result
+
+# Docs (VitePress)
+pnpm install         # install vitepress (first time)
+pnpm run docs:dev    # local preview at http://localhost:5173/latentforge/
+pnpm run docs:build  # production build to docs/.vitepress/dist/
+pnpm run docs:gen    # regenerate docs/api/tools.md from src/latentforge/tools.py
 ```
 
 ## Architecture

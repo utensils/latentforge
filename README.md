@@ -35,10 +35,18 @@ latentforge --config configs/ghibli.yaml  # with a dataset config
 ### Development
 
 ```bash
-nix develop     # enters devshell with latentforge, ruff, pyright, gallery-dl, uv
+nix develop     # enters devshell with latentforge, ruff, pyright, gallery-dl, uv, node, pnpm
 latentforge     # run the agent
 nix fmt         # format nix + python files
+
+# Documentation site (VitePress)
+docs-dev        # hot-reloading docs server at http://localhost:5173
+docs-build      # static build → docs/.vitepress/dist/
 ```
+
+Docs live under [`docs/`](./docs) and are a full VitePress site — landing
+page, getting-started guide, architecture overview, dataset-config reference,
+and an auto-generated MCP tools reference built from `src/latentforge/tools.py`.
 
 ## How It Works
 

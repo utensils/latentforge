@@ -127,6 +127,8 @@
               pkgs.gallery-dl
               pkgs.ruff
               pkgs.pyright
+              pkgs.nodejs_20
+              pkgs.pnpm
             ]
             ++ linuxGpuPkgs;
 
@@ -147,6 +149,24 @@
 
             shellHook = ''
               # ── Helper functions ──
+              docs-dev() {
+                (
+                  cd "''${FLAKE_ROOT:-$PWD}/docs" && \
+                  pnpm install --silent && \
+                  pnpm dev "$@"
+                )
+              }
+              export -f docs-dev
+
+              docs-build() {
+                (
+                  cd "''${FLAKE_ROOT:-$PWD}/docs" && \
+                  pnpm install --silent && \
+                  pnpm build "$@"
+                )
+              }
+              export -f docs-build
+
               count() {
                 echo ""
                 dsroot="datasets"

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="LatentForge">
+  <defs>
+    <linearGradient id="flame" x1="32" y1="8" x2="32" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fbbf24"/>
+      <stop offset="0.55" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="anvil" x1="10" y1="40" x2="54" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b45309"/>
+      <stop offset="1" stop-color="#78350f"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Spark / flame on top -->
+  <path
+    d="M32 8
+       C 34 16, 40 18, 38 26
+       C 42 24, 44 30, 40 34
+       C 44 34, 46 40, 40 42
+       L 24 42
+       C 18 40, 20 34, 24 34
+       C 20 30, 22 24, 26 26
+       C 24 18, 30 16, 32 8 Z"
+    fill="url(#flame)"
+  />
+
+  <!-- Inner bright spark -->
+  <path
+    d="M32 18
+       C 33 22, 36 24, 34 28
+       C 32 30, 30 30, 30 28
+       C 29 24, 31 22, 32 18 Z"
+    fill="#fef3c7"
+    opacity="0.85"
+  />
+
+  <!-- Anvil base -->
+  <path
+    d="M10 46
+       L 54 46
+       L 50 52
+       L 14 52 Z"
+    fill="url(#anvil)"
+  />
+  <rect x="20" y="52" width="24" height="5" rx="1" fill="url(#anvil)"/>
+  <path
+    d="M16 57 L 48 57 L 50 61 L 14 61 Z"
+    fill="#451a03"
+  />
+</svg>

@@ -18,6 +18,12 @@ build/
 result
 .direnv/
 
+# VitePress / Node
+node_modules/
+.pnpm-store/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+
 # Agent / runtime
 .env
 rejected/

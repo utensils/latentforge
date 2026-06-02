@@ -34,6 +34,7 @@ src/latentforge/
 ```
 
 **agent.py** is the core: it creates a `ClaudeSDKClient`, connects with `ClaudeAgentOptions`, and runs an interactive loop. Key patterns:
+
 - `cli()` is the sync entry point (`asyncio.run(main())`)
 - `_build_options()` constructs `ClaudeAgentOptions` with MCP server, allowed tools, and permission mode
 - `_print_response()` consumes the async message stream, rendering `TextBlock` as markdown and `ToolUseBlock` as tool indicators

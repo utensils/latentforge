@@ -76,18 +76,18 @@ latentforge → launches an interactive Claude agent
 
 22 custom MCP tools across the full dataset workflow:
 
-| Category | Tools |
-|----------|-------|
-| **Config** | `create_config`, `read_config`, `update_config`, `list_configs` |
-| **Search** | `search_bing`, `search_wikimedia` |
+| Category     | Tools                                                                     |
+| ------------ | ------------------------------------------------------------------------- |
+| **Config**   | `create_config`, `read_config`, `update_config`, `list_configs`           |
+| **Search**   | `search_bing`, `search_wikimedia`                                         |
 | **Download** | `download_images` (MD5 dedup), `download_gallery` (gallery-dl, 80+ sites) |
-| **Browse** | `list_images`, `get_image_info` |
-| **Organize** | `move_images`, `organize_images` |
-| **Quality** | `analyze_quality`, `find_duplicates`, `detect_screenshots` |
-| **Cropping** | `crop_center`, `crop_smart`, `crop_faces` |
-| **Faces** | `detect_faces` |
-| **Training** | `resize_images`, `write_caption` |
-| **Export** | `export_dataset` (ai-toolkit format) |
+| **Browse**   | `list_images`, `get_image_info`                                           |
+| **Organize** | `move_images`, `organize_images`                                          |
+| **Quality**  | `analyze_quality`, `find_duplicates`, `detect_screenshots`                |
+| **Cropping** | `crop_center`, `crop_smart`, `crop_faces`                                 |
+| **Faces**    | `detect_faces`                                                            |
+| **Training** | `resize_images`, `write_caption`                                          |
+| **Export**   | `export_dataset` (ai-toolkit format)                                      |
 
 The agent also has built-in `Read` (with vision for viewing images), `Write`, and `Bash` tools.
 
@@ -95,17 +95,17 @@ The agent also has built-in `Read` (with vision for viewing images), `Write`, an
 
 Type these during a session:
 
-| Command | Description |
-|---------|-------------|
-| `/help` | Show available commands |
-| `/config` | Show active dataset config |
-| `/tools` | List all agent tools |
-| `/cost` | Show session cost |
-| `/status` | Session status and context usage |
-| `/model <name>` | Switch Claude model (forks session) |
-| `/export [path]` | Export dataset to ai-toolkit format |
-| `/compact` | Compact context (summarize + fresh session) |
-| `/quit` | Exit |
+| Command          | Description                                 |
+| ---------------- | ------------------------------------------- |
+| `/help`          | Show available commands                     |
+| `/config`        | Show active dataset config                  |
+| `/tools`         | List all agent tools                        |
+| `/cost`          | Show session cost                           |
+| `/status`        | Session status and context usage            |
+| `/model <name>`  | Switch Claude model (forks session)         |
+| `/export [path]` | Export dataset to ai-toolkit format         |
+| `/compact`       | Compact context (summarize + fresh session) |
+| `/quit`          | Exit                                        |
 
 ## Dataset Config
 
@@ -164,6 +164,7 @@ Images follow the naming pattern `{query_prefix}_{md5_hash}.{ext}` — the MD5 h
 ## Authentication
 
 Set one of:
+
 - `ANTHROPIC_API_KEY` — Anthropic API key
 - `CLAUDE_CODE_OAUTH_TOKEN` — OAuth token (used when no API key is present)
 

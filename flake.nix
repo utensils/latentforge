@@ -4,24 +4,6 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-    pyproject-nix = {
-      url = "github:pyproject-nix/pyproject.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    uv2nix = {
-      url = "github:pyproject-nix/uv2nix";
-      inputs.pyproject-nix.follows = "pyproject-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    pyproject-build-systems = {
-      url = "github:pyproject-nix/build-system-pkgs";
-      inputs.pyproject-nix.follows = "pyproject-nix";
-      inputs.uv2nix.follows = "uv2nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -32,16 +14,13 @@
     {
       self,
       nixpkgs,
-      pyproject-nix,
-      uv2nix,
-      pyproject-build-systems,
       treefmt-nix,
     }:
     let
-      # Read project metadata from pyproject.toml
-      pyproject = builtins.fromTOML (builtins.readFile ./pyproject.toml);
-      pname = pyproject.project.name;
-      version = pyproject.project.version;
+      # Read project metadata from package.json
+      packageJson = builtins.fromJSON (builtins.readFile ./package.json);
+      pname = packageJson.name;
+      version = packageJson.version;
 
       forAllSystems = nixpkgs.lib.genAttrs [
         "x86_64-linux"
@@ -49,14 +28,6 @@
         "x86_64-darwin"
         "aarch64-darwin"
       ];
-
-      # Load uv workspace from the flake source (avoids redundant store copy)
-      workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = self; };
-
-      # Create package overlay from workspace
-      overlay = workspace.mkPyprojectOverlay {
-        sourcePreference = "wheel";
-      };
 
       mkPkgsFor =
         system:
@@ -67,35 +38,42 @@
             "aarch64-linux"
           ];
         };
-
-      # Build a python set + virtual env for a given system
-      mkVenvFor =
-        system:
-        let
-          pkgs = mkPkgsFor system;
-          python = pkgs.python312;
-
-          # Create base Python set from pyproject-nix
-          pythonSet = (pkgs.callPackage pyproject-nix.build.packages { inherit python; }).overrideScope (
-            nixpkgs.lib.composeManyExtensions [
-              pyproject-build-systems.overlays.default
-              overlay
-            ]
-          );
-        in
-        pythonSet.mkVirtualEnv "${pname}-env" workspace.deps.default;
     in
     {
       # ── Packages ────────────────────────────────────────────────────────
       packages = forAllSystems (system: {
-        default = mkVenvFor system;
+        default =
+          let
+            pkgs = mkPkgsFor system;
+          in
+          pkgs.buildNpmPackage {
+            inherit pname version;
+            src = self;
+            npmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+
+            nativeBuildInputs = [
+              pkgs.makeWrapper
+              pkgs.pkg-config
+            ];
+
+            buildInputs = [
+              pkgs.vips
+            ];
+
+            npmBuildScript = "build";
+
+            postInstall = ''
+              wrapProgram $out/bin/latentforge \
+                --prefix PATH : ${nixpkgs.lib.makeBinPath [ pkgs.gallery-dl ]}
+            '';
+          };
       });
 
       # ── Apps ─────────────────────────────────────────────────────────────
       apps = forAllSystems (system: {
         default = {
           type = "app";
-          program = "${mkVenvFor system}/bin/${pname}";
+          program = "${self.packages.${system}.default}/bin/${pname}";
         };
       });
 
@@ -108,42 +86,16 @@
             "x86_64-darwin"
             "aarch64-darwin"
           ];
-          isLinux = builtins.elem system [
-            "x86_64-linux"
-            "aarch64-linux"
-          ];
-          venv = mkVenvFor system;
-
-          linuxGpuPkgs = nixpkgs.lib.optionals isLinux [
-            pkgs.cudaPackages.cudatoolkit
-            pkgs.cudaPackages.cudnn
-          ];
         in
         {
           default = pkgs.mkShell {
             packages = [
-              venv
-              pkgs.uv
+              pkgs.nodejs_22
               pkgs.gallery-dl
-              pkgs.ruff
-              pkgs.pyright
-            ]
-            ++ linuxGpuPkgs;
-
-            env = {
-              PYTHONDONTWRITEBYTECODE = "1";
-              UV_NO_SYNC = "1";
-            }
-            // nixpkgs.lib.optionalAttrs isLinux {
-              LD_LIBRARY_PATH = nixpkgs.lib.makeLibraryPath [
-                pkgs.cudaPackages.cudatoolkit
-                pkgs.cudaPackages.cudnn
-              ];
-              CUDA_PATH = "${pkgs.cudaPackages.cudatoolkit}";
-            }
-            // nixpkgs.lib.optionalAttrs isDarwin {
-              PYTORCH_ENABLE_MPS_FALLBACK = "1";
-            };
+              pkgs.vips
+              pkgs.pkg-config
+              pkgs.prettier
+            ];
 
             shellHook = ''
               # ── Helper functions ──
@@ -174,18 +126,18 @@
                 dsroot="datasets"
                 echo ""
                 echo "  Size distribution:"
-                echo "    > 500KB (excellent): $(find "$dsroot" -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) -size +500k | wc -l | tr -d ' ')"
-                echo "    100-500KB (good):    $(find "$dsroot" -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) -size +100k -not -size +500k | wc -l | tr -d ' ')"
-                echo "    50-100KB (ok):       $(find "$dsroot" -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) -size +50k -not -size +100k | wc -l | tr -d ' ')"
-                echo "    10-50KB (small):     $(find "$dsroot" -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) -size +10k -not -size +50k | wc -l | tr -d ' ')"
+                echo "     > 500KB (excellent): $(find "$dsroot" -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) -size +500k | wc -l | tr -d ' ')"
+                echo "     100-500KB (good):     $(find "$dsroot" -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) -size +100k -not -size +500k | wc -l | tr -d ' ')"
+                echo "     50-100KB (ok):        $(find "$dsroot" -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) -size +50k -not -size +100k | wc -l | tr -d ' ')"
+                echo "     10-50KB (small):      $(find "$dsroot" -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) -size +10k -not -size +50k | wc -l | tr -d ' ')"
                 bad=$(find "$dsroot" -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) -size -10k)
                 n=$(echo "$bad" | grep -c . 2>/dev/null || echo 0)
-                echo "    < 10KB (suspect):    $n"
+                echo "     < 10KB (suspect):     $n"
                 if [ -n "$bad" ] && [ "$n" -gt 0 ]; then
                   echo ""
                   echo "  Suspect files:"
                   echo "$bad" | while read -r f; do
-                    printf "    %6s  %s\n" "$(wc -c < "$f" | tr -d ' ')B" "$(basename "$f")"
+                    printf "     %6s   %s\n" "$(wc -c < "$f" | tr -d ' ')B" "$(basename "$f")"
                   done
                 fi
                 echo ""
@@ -203,7 +155,7 @@
           treefmtEval = treefmt-nix.lib.evalModule pkgs {
             projectRootFile = "flake.nix";
             programs.nixfmt.enable = true;
-            programs.ruff-format.enable = true;
+            programs.prettier.enable = true;
           };
         in
         treefmtEval.config.build.wrapper
@@ -217,7 +169,7 @@
           treefmtEval = treefmt-nix.lib.evalModule pkgs {
             projectRootFile = "flake.nix";
             programs.nixfmt.enable = true;
-            programs.ruff-format.enable = true;
+            programs.prettier.enable = true;
           };
         in
         {

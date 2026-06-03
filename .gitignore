@@ -4,15 +4,15 @@ datasets/**
 configs/**
 !configs/.gitkeep
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-*.egg-info/
+# Node
+node_modules/
+.npm/
+coverage/
+*.tsbuildinfo
+
+# Build outputs
 dist/
 build/
-.python-version
 
 # Nix
 result

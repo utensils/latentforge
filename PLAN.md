@@ -103,18 +103,18 @@ This plan is intentionally detailed for implementation by a smaller model. Follo
 
 ### 1.3 Update repository metadata and ignored files
 
-- [ ] Update `.gitignore`:
-   - [ ] Remove Python-only entries: `__pycache__/`, `*.pyc`, `*.pyo`, `.venv/`, `*.egg-info/`, `.python-version`.
-   - [ ] Keep generic `dist/` and `build/` ignored unless `dist/` must be published locally.
-   - [ ] Add Node entries:
-     - [ ] `node_modules/`
-     - [ ] `.npm/`
-     - [ ] `coverage/`
-     - [ ] `*.tsbuildinfo`
-- [ ] Keep dataset/config ignores exactly as-is:
-   - [ ] `datasets/**` except `datasets/.gitkeep`
-   - [ ] `configs/**` except `configs/.gitkeep`
-- [ ] Update `.envrc` only if needed. `use flake` can stay.
+- [x] Update `.gitignore`:
+   - [x] Remove Python-only entries: `__pycache__/`, `*.pyc`, `*.pyo`, `.venv/`, `*.egg-info/`, `.python-version`.
+   - [x] Keep generic `dist/` and `build/` ignored unless `dist/` must be published locally.
+   - [x] Add Node entries:
+     - [x] `node_modules/`
+     - [x] `.npm/`
+     - [x] `coverage/`
+     - [x] `*.tsbuildinfo`
+- [x] Keep dataset/config ignores exactly as-is:
+   - [x] `datasets/**` except `datasets/.gitkeep`
+   - [x] `configs/**` except `configs/.gitkeep`
+- [x] Update `.envrc` only if needed. `use flake` can stay.
 - [ ] Remove `pyproject.toml` after package scripts are working.
 - [ ] Remove `uv.lock` after `package-lock.json` exists and Nix build uses it.
 

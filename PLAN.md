@@ -150,7 +150,7 @@ src/
     json.ts                # JSON-or-newline parsing helpers
 ```
 
-- [ ] `src/cli.ts` must start with:
+- [x] `src/cli.ts` must start with:
 
 ```ts
 #!/usr/bin/env node
@@ -159,13 +159,13 @@ import { main } from "./agent.js";
 await main();
 ```
 
-- [ ] Ensure every relative import includes `.js` because `moduleResolution` is `NodeNext`.
+- [x] Ensure every relative import includes `.js` because `moduleResolution` is `NodeNext`.
 
 ## 3. Port shared types and prompt builder
 
 ### 3.1 `src/types.ts`
 
-- [ ] Add the current YAML config shape:
+- [x] Add the current YAML config shape:
 
 ```ts
 export interface DatasetConfig {
@@ -184,7 +184,7 @@ export interface DatasetConfig {
 }
 ```
 
-- [ ] Add reusable tool detail type:
+- [x] Add reusable tool detail type:
 
 ```ts
 export interface ToolDetails {

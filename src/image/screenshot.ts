@@ -20,7 +20,7 @@ const sharpMod = (sharpLib as any).default ?? sharpLib;
  *    - phone-shaped (aspect < 0.6), entropy < 5.5, height > 1000 => screenshot
  */
 export async function isScreenshot(
-  input: string | Buffer | NodeJS.ArrayBufferView,
+  input: string | Uint8Array | Buffer,
 ): Promise<ScreenshotResult> {
   let metaW = 0;
   let metaH = 0;

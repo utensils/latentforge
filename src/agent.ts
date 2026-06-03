@@ -96,7 +96,7 @@ async function handleSlashCommand(
     stats: TokenStats,
 ): Promise<"quit" | null> {
     const parts = cmd.trim().split(/\s+/, 2);
-    const name = parts[0].toLowerCase();
+    const name = (parts[0] ?? "").toLowerCase();
     const arg = parts[1] ?? undefined;
 
     switch (name) {

@@ -18,7 +18,7 @@ export function shannonEntropy(data: Uint8Array, width: number, height: number):
 
   let entropy = 0;
   for (let i = 0; i < 256; i++) {
-    const countVal = histogram[i];
+    const countVal = histogram[i] ?? 0;
     if (countVal === 0) continue;
     const p = countVal / totalPixels;
     entropy -= p * Math.log2(p);

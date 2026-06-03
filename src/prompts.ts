@@ -5,7 +5,7 @@ import type { DatasetConfig } from "./types.js";
 /**
  * Build the system prompt, optionally injecting dataset config context.
  */
-export function buildSystemPrompt(configPath: string | undefined): string {
+export function buildSystemPrompt(configPath?: string): string {
   const base =
       "You are a LoRA training dataset collection and curation agent. You help users build high-quality image datasets for Flux 1 LoRA fine-tuning.\n\n" +
     "## Capabilities\n\n" +
@@ -15,7 +15,7 @@ export function buildSystemPrompt(configPath: string | undefined): string {
     "**Image Acquisition:** search_bing, search_wikimedia, download_images, download_gallery\n" +
     "- Search Bing Images and Wikimedia Commons for relevant images.\n" +
     "- Download images with automatic MD5 deduplication.\n" +
-    "- Use download_gallery with gallery-dl for downloading from 80+ sites (DeviantArt, ArtStation, Pinterest, Tumblr, Reddit, Flickr, etc.) -- just pass a URL.\n\n" +
+    "- Use download_gallery with gallery-dl for downloading from 80+ sites (DeviantArt, ArtStation, Pinterest, Tumblr, Reddit, Flickr, etc.) — just pass a URL.\n\n" +
     "**Dataset Management:** list_images, get_image_info, move_images, organize_images\n" +
     "- Browse and organize images across category directories.\n" +
     "- Move images between categories or to rejected/.\n\n" +
@@ -26,10 +26,10 @@ export function buildSystemPrompt(configPath: string | undefined): string {
     "- Write .txt caption files alongside images.\n" +
     "- Detect and reject social media screenshots, text-only tweets, and low-content images.\n\n" +
     "**Cropping & Face Detection:** crop_center, crop_smart, detect_faces, crop_faces\n" +
-    "- crop_center: Center-crop to square -- best for logos, album covers, symmetric images.\n" +
-    "- crop_smart: Smart-crop to the highest-entropy (most detailed) region -- preserves the most interesting part of the image.\n" +
-    "- detect_faces: Scan images for faces and report bounding boxes -- useful for reviewing portrait/band photos.\n" +
-    "- crop_faces: Crop around detected faces with configurable padding -- essential for portrait training data.\n\n" +
+    "- crop_center: Center-crop to square — best for logos, album covers, symmetric images.\n" +
+    "- crop_smart: Smart-crop to the highest-entropy (most detailed) region — preserves the most interesting part of the image.\n" +
+    "- detect_faces: Scan images for faces and report bounding boxes — useful for reviewing portrait/band photos.\n" +
+    "- crop_faces: Crop around detected faces with configurable padding — essential for portrait training data.\n\n" +
     "**Export:** export_dataset\n" +
     "- Export curated dataset to ai-toolkit format (flat directory of image + caption pairs).\n" +
     "- Auto-detects ai-toolkit installation path ($DATASETS_FOLDER, $AI_TOOLKIT_UI_DATA, $XDG_DATA_HOME, or ~/.local/share/ai-toolkit/datasets/).\n" +
@@ -62,7 +62,7 @@ export function buildSystemPrompt(configPath: string | undefined): string {
     "1. Create or load a dataset config\n" +
     "2. Search for images using configured queries\n" +
     "3. Download images to category directories\n" +
-    "4. Review and curate -- remove off-topic/low-quality images\n" +
+    "4. Review and curate — remove off-topic/low-quality images\n" +
     "5. Find and remove duplicates\n" +
     "6. Resize to training resolution\n" +
     "7. Caption images with trigger word\n\n" +
@@ -92,7 +92,7 @@ export function buildSystemPrompt(configPath: string | undefined): string {
     const resolution = config.curation?.training_resolution ?? 1024;
 
     const catLines = Object.entries(categories)
-      .map(([k, v]) => "    - **" + k + "**: " + v)
+      .map(([k, v]) => "  - **" + k + "**: " + v)
       .join("\n");
 
     return (

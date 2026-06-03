@@ -195,21 +195,21 @@ export interface ToolDetails {
 
 ### 3.2 `src/prompts.ts`
 
-- [ ] Port `src/latentforge/prompts.py` to TypeScript.
-- [ ] Use `fs.readFileSync` or `await fs.promises.readFile`; keep the same text content and curation guidelines.
-- [ ] Use `YAML.parse()` from `yaml` instead of `yaml.safe_load()`.
-- [ ] Export:
+- [x] Port `src/latentforge/prompts.py` to TypeScript.
+- [x] Use `fs.readFileSync` or `await fs.promises.readFile`; keep the same text content and curation guidelines.
+- [x] Use `YAML.parse()` from `yaml` instead of `yaml.safe_load()`.
+- [x] Export:
 
 ```ts
 export function buildSystemPrompt(configPath?: string): string;
 ```
 
-- [ ] Preserve the active dataset injected section exactly:
-   - [ ] Config path
-   - [ ] Trigger word
-   - [ ] Target count
-   - [ ] Training resolution
-   - [ ] Category lines
+- [x] Preserve the active dataset injected section exactly:
+   - [x] Config path
+   - [x] Trigger word
+   - [x] Target count
+   - [x] Training resolution
+   - [x] Category lines
 
 ## 4. Port pi custom tool infrastructure
 

@@ -2,6 +2,17 @@
 
 This plan is intentionally detailed for implementation by a smaller model. Follow the checklist in order. Do not remove the Python implementation until the TypeScript implementation builds, typechecks, and has parity tests for the migrated helpers.
 
+## Current worktree status
+
+Last synced: 2026-06-05.
+
+- TypeScript scaffold exists and `npm run typecheck` / `npm run build` pass. `npm test` fails (no tests).
+- Custom tool layer: all 22 tools registered in `ALL_TOOLS` / `ALL_TOOL_NAMES` (includes `organize_images`); `npm run typecheck` and `npm run build` pass for the tool layer. Schemas use inline TS types; `defineTool()` wrapping yet to be applied to every tool.
+- Face tools and part of gallery screenshot rejection are placeholders.
+- No tests exist yet; `npm test` currently fails with "No test files found".
+
+Next task: fix the pi custom tool layer first — define proper schemas/wrappers, include all 22 tools in `ALL_TOOLS`, and keep `npm run typecheck` / `npm run build` passing.
+
 ## 0. Migration goals and non-goals
 
 - [ ] Rewrite the project from Python to TypeScript and remove Python as an application/runtime dependency.
@@ -120,7 +131,7 @@ This plan is intentionally detailed for implementation by a smaller model. Follo
 
 ## 2. Create the TypeScript source tree
 
-- [ ] Replace `src/latentforge/*.py` with this TypeScript layout:
+- [ ] Replace `src/latentforge/*.py` with this TypeScript layout (TypeScript files exist; Python files intentionally still remain until section 10):
 
 ```text
 src/
@@ -215,7 +226,7 @@ export function buildSystemPrompt(configPath?: string): string;
 
 ### 4.1 Tool response helpers
 
-- [ ] In `src/tools/response.ts`, implement:
+- [x] In `src/tools/response.ts`, implement:
 
 ```ts
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
@@ -231,39 +242,41 @@ export function throwToolError(message: string): never {
 ```
 
 - [ ] Use `throwToolError()` for failures. pi tool errors should be thrown, not returned with Python-style `is_error`.
+  - Current code still throws `new Error(...)` directly in most tools.
 
 ### 4.2 Tool schemas
 
 - [ ] Use `Type` from `typebox` for every pi tool schema.
 - [ ] Wrap every tool with `defineTool()` from `@mariozechner/pi-coding-agent`.
-- [ ] Preserve tool names exactly:
-   - [ ] `create_config`
-   - [ ] `read_config`
-   - [ ] `update_config`
-   - [ ] `list_configs`
-   - [ ] `search_bing`
-   - [ ] `search_wikimedia`
-   - [ ] `download_images`
-   - [ ] `download_gallery`
-   - [ ] `list_images`
-   - [ ] `get_image_info`
-   - [ ] `move_images`
-   - [ ] `organize_images`
-   - [ ] `analyze_quality`
-   - [ ] `find_duplicates`
-   - [ ] `detect_screenshots`
-   - [ ] `crop_center`
-   - [ ] `crop_smart`
-   - [ ] `crop_faces`
-   - [ ] `detect_faces`
-   - [ ] `resize_images`
-   - [ ] `write_caption`
-   - [ ] `export_dataset`
+- [x] Preserve tool names exactly:
+   - [x] `create_config`
+   - [x] `read_config`
+   - [x] `update_config`
+   - [x] `list_configs`
+   - [x] `search_bing`
+   - [x] `search_wikimedia`
+   - [x] `download_images`
+   - [x] `download_gallery`
+   - [x] `list_images`
+   - [x] `get_image_info`
+   - [x] `move_images`
+   - [x] `organize_images`
+   - [x] `analyze_quality`
+   - [x] `find_duplicates`
+   - [x] `detect_screenshots`
+   - [x] `crop_center`
+   - [x] `crop_smart`
+   - [x] `crop_faces`
+   - [x] `detect_faces`
+   - [x] `resize_images`
+   - [x] `write_caption`
+   - [x] `export_dataset`
 
 ### 4.3 Tool registry
 
-- [ ] In `src/tools/index.ts`, export all tools in the same order as Python `ALL_TOOLS`.
-- [ ] Export `ALL_TOOL_NAMES` for the pi SDK allowlist:
+- [x] In `src/tools/index.ts`, export all tools in the same order as Python `ALL_TOOLS`.
+    - 22 tools registered; `organize_images` included. `ALL_TOOL_NAMES.length === 22`.
+- [x] Export `ALL_TOOL_NAMES` for the pi SDK allowlist (22 tools).
 
 ```ts
 export const ALL_TOOLS = [createConfigTool, readConfigTool, ...] as const;
@@ -648,9 +661,9 @@ const { session } = await createAgentSession({
 
 ### 8.2 Manual CLI verification
 
-- [ ] Run `npm run typecheck`.
-- [ ] Run `npm run build`.
-- [ ] Run `npm test`.
+- [x] Run `npm run typecheck` (passes, 2026-06-05).
+- [x] Run `npm run build` (passes, 2026-06-05).
+- [ ] Run `npm test` (currently fails because no test files exist).
 - [ ] Run `node dist/cli.js --help`.
 - [ ] Run `npm run dev -- --help`.
 - [ ] Run `npm run dev` and verify:

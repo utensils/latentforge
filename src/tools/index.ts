@@ -1,4 +1,4 @@
-import type { ToolDefinition } from "@mariozechner/pi-coding-agent";
+import type { Static, TSchema } from "typebox";
 
 import {
   createConfigTool,
@@ -8,39 +8,39 @@ import {
 } from "./config.js";
 
 import {
-  searchBingTool as searchBingToolDef,
-  searchWikimediaTool as searchWikimediaToolDef,
-  downloadImagesTool as downloadImagesToolDef,
-  downloadGalleryTool as downloadGalleryToolDef,
+  searchBingTool,
+  searchWikimediaTool,
+  downloadImagesTool,
+  downloadGalleryTool,
 } from "./acquisition.js";
 
 import {
-  listImagesTool as listImagesToolDef,
-  getImageInfoTool as getImageInfoToolDef,
-  moveImagesTool as moveImagesToolDef,
+  listImagesTool,
+  getImageInfoTool,
+  moveImagesTool,
   organizeImagesTool,
 } from "./browse.js";
 
 import {
-  analyzeQualityTool as analyzeQualityToolDef,
-  findDuplicatesTool as findDuplicatesToolDef,
-  resizeImagesTool as resizeImagesToolDef,
-  writeCaptionTool as writeCaptionToolDef,
-  detectScreenshotsTool as detectScreenshotsToolDef,
+  analyzeQualityTool,
+  findDuplicatesTool,
+  resizeImagesTool,
+  writeCaptionTool,
+  detectScreenshotsTool,
 } from "./quality.js";
 
 import {
-  cropCenterTool as cropCenterToolDef,
-  cropSmartTool as cropSmartToolDef,
+  cropCenterTool,
+  cropSmartTool,
 } from "./crop.js";
 
 import {
-  detectFacesTool as detectFacesToolDef,
-  cropFacesTool as cropFacesToolDef,
+  detectFacesTool,
+  cropFacesTool,
 } from "./faces.js";
 
 import {
-  exportDatasetTool as exportDatasetToolDef,
+  exportDatasetTool,
 } from "./export.js";
 
 /**
@@ -48,34 +48,35 @@ import {
  * Total: 22 tools.
  */
 export const ALL_TOOLS = [
-    // Config
+  // Config
   createConfigTool,
   readConfigTool,
   updateConfigTool,
   listConfigsTool,
-    // Acquisition
-  searchBingToolDef,
-  searchWikimediaToolDef,
-  downloadImagesToolDef,
-  downloadGalleryToolDef,
-    // Dataset management
-  listImagesToolDef,
-  getImageInfoToolDef,
-  moveImagesToolDef,
-    // Quality & curation
-  analyzeQualityToolDef,
-  findDuplicatesToolDef,
-  resizeImagesToolDef,
-  writeCaptionToolDef,
-  detectScreenshotsToolDef,
-    // Cropping
-  cropCenterToolDef,
-  cropSmartToolDef,
-    // Faces
-  detectFacesToolDef,
-  cropFacesToolDef,
-    // Export
-  exportDatasetToolDef,
+  // Acquisition
+  searchBingTool,
+  searchWikimediaTool,
+  downloadImagesTool,
+  downloadGalleryTool,
+  // Browse
+  listImagesTool,
+  getImageInfoTool,
+  moveImagesTool,
+  organizeImagesTool,
+  // Quality
+  analyzeQualityTool,
+  findDuplicatesTool,
+  resizeImagesTool,
+  writeCaptionTool,
+  detectScreenshotsTool,
+  // Crop
+  cropCenterTool,
+  cropSmartTool,
+  // Faces
+  detectFacesTool,
+  cropFacesTool,
+  // Export
+  exportDatasetTool,
 ] as const;
 
 /**
@@ -91,32 +92,33 @@ export {
   listConfigsTool,
 };
 export {
-  searchBingToolDef,
-  searchWikimediaToolDef,
-  downloadImagesToolDef,
-  downloadGalleryToolDef,
+  searchBingTool,
+  searchWikimediaTool,
+  downloadImagesTool,
+  downloadGalleryTool,
 };
 export {
-  listImagesToolDef,
-  getImageInfoToolDef,
-  moveImagesToolDef,
+  listImagesTool,
+  getImageInfoTool,
+  moveImagesTool,
   organizeImagesTool,
 };
 export {
-  analyzeQualityToolDef,
-  findDuplicatesToolDef,
-  resizeImagesToolDef,
-  writeCaptionToolDef,
-  detectScreenshotsToolDef,
+  analyzeQualityTool,
+  findDuplicatesTool,
+  resizeImagesTool,
+  writeCaptionTool,
+  detectScreenshotsTool,
 };
 export {
-  cropCenterToolDef,
-  cropSmartToolDef,
+  cropCenterTool,
+  cropSmartTool,
 };
 export {
-  detectFacesToolDef,
-  cropFacesToolDef,
+  detectFacesTool,
+  cropFacesTool,
 };
 export {
-  exportDatasetToolDef,
+  exportDatasetTool,
 };
+export type { Static, TSchema } from "typebox";

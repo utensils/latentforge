@@ -1,8 +1,11 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { ToolDefinition } from "@mariozechner/pi-coding-agent";
+import { Type } from "typebox";
+import type { AgentToolResult } from "@mariozechner/pi-agent-core";
+import type { Static } from "typebox";
 import { IMAGE_EXTS } from "../image/constants.js";
 import { shannonEntropy } from "../image/entropy.js";
+import { createTool } from "./response.js";
 
 // ─── Utility: collect all images recursively ──────────────────────────────────
 
@@ -27,15 +30,33 @@ function collectRecursive(dir: string): Array<{ fullPath: string }> {
     return results;
     }
 
+// ─── Schemas ────────────────────────────────────────────────────────────────
+
+const CropCenterParams = Type.Object({
+  source_dir: Type.Optional(Type.String()),
+  output_dir: Type.Optional(Type.String()),
+  resolution: Type.Optional(Type.Integer()),
+});
+
+type CropCenterParams = Static<typeof CropCenterParams>;
+
+const CropSmartParams = Type.Object({
+  source_dir: Type.Optional(Type.String()),
+  output_dir: Type.Optional(Type.String()),
+  resolution: Type.Optional(Type.Integer()),
+});
+
+type CropSmartParams = Static<typeof CropSmartParams>;
+
 // ─── Tool: crop_center ────────────────────────────────────────────────────────
 
 /** Center-crop images to a square, then resize to a target resolution. */
-export async function cropCenter(
-  args: Record<string, unknown>,
-): Promise<ReturnType<typeof import("./response.js").textResult>> {
-  const sourceDir = path.resolve(String(args.source_dir ?? "."));
-  const outputDir = path.resolve(String(args.output_dir ?? "."));
-  const resolution = Math.max(1, Math.round(Number(args.resolution ?? 1024)));
+async function cropCenter(
+  args: CropCenterParams,
+): Promise<AgentToolResult<{ ok: boolean }>> {
+  const sourceDir = path.resolve(args.source_dir ?? ".");
+  const outputDir = path.resolve(args.output_dir ?? ".");
+  const resolution = Math.max(1, args.resolution ?? 1024);
 
   if (!fs.existsSync(sourceDir)) {
     throw new Error(`Source directory not found: ${sourceDir}`);
@@ -85,12 +106,12 @@ export async function cropCenter(
 // ─── Tool: crop_smart ─────────────────────────────────────────────────────────
 
 /** Smart-crop to the highest-entropy region, resize to resolution. */
-export async function cropSmart(
-  args: Record<string, unknown>,
-): Promise<ReturnType<typeof import("./response.js").textResult>> {
-  const sourceDir = path.resolve(String(args.source_dir ?? "."));
-  const outputDir = path.resolve(String(args.output_dir ?? "."));
-  const resolution = Math.max(1, Math.round(Number(args.resolution ?? 1024)));
+async function cropSmart(
+  args: CropSmartParams,
+): Promise<AgentToolResult<{ ok: boolean }>> {
+  const sourceDir = path.resolve(args.source_dir ?? ".");
+  const outputDir = path.resolve(args.output_dir ?? ".");
+  const resolution = Math.max(1, args.resolution ?? 1024);
 
   if (!fs.existsSync(sourceDir)) {
     throw new Error(`Source directory not found: ${sourceDir}`);
@@ -210,20 +231,20 @@ export async function cropSmart(
 
 // ─── Tool Definitions ───────────────────────────────────────────────────────
 
-export const cropCenterTool = {
+export const cropCenterTool = createTool({
   name: "crop_center",
   label: "Crop Center",
   description:
        "Center-crop images to a square, resize to target resolution.",
-  parameters: {} as any,
-  execute: cropCenter,
-};
+  parameters: CropCenterParams,
+  handler: cropCenter,
+});
 
-export const cropSmartTool = {
+export const cropSmartTool = createTool({
   name: "crop_smart",
   label: "Crop Smart",
   description:
        "Smart-crop to highest-entropy region, resize to resolution.",
-  parameters: {} as any,
-  execute: cropSmart,
-};
+  parameters: CropSmartParams,
+  handler: cropSmart,
+});

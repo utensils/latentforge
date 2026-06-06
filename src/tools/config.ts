@@ -1,18 +1,52 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as yaml from "yaml";
+import { Type } from "typebox";
 
-/**
- * Create a new dataset YAML config file.
- */
+import type { AgentToolResult } from "@mariozechner/pi-agent-core";
+import type { Static } from "typebox";
+import type { ToolDetails } from "../types.js";
+import { createTool } from "./response.js";
+
+// ─── Schemas ────────────────────────────────────────────────────────────────
+
+const CreateConfigParams = Type.Object({
+  name: Type.String(),
+  subject: Type.String(),
+  trigger_word: Type.String(),
+  output_dir: Type.String(),
+  categories: Type.String(),
+});
+
+type CreateConfigParams = Static<typeof CreateConfigParams>;
+
+const ReadConfigParams = Type.Object({
+  path: Type.String(),
+});
+
+type ReadConfigParams = Static<typeof ReadConfigParams>;
+
+const UpdateConfigParams = Type.Object({
+  path: Type.String(),
+  updates: Type.String(),
+});
+
+type UpdateConfigParams = Static<typeof UpdateConfigParams>;
+
+const ListConfigParams = Type.Object({});
+
+type ListConfigParams = Static<typeof ListConfigParams>;
+
+// ─── Tool Implementations ───────────────────────────────────────────────────
+
 async function createConfig(
-  args: Record<string, unknown>,
-): Promise<ReturnType<typeof import("./response.js").textResult>> {
-  const name = String(args.name ?? "");
-  const subject = String(args.subject ?? "");
-  const triggerWord = String(args.trigger_word ?? "");
-  const outputDir = String(args.output_dir ?? "");
-  const categoriesJson = String(args.categories ?? "");
+  args: CreateConfigParams,
+): Promise<AgentToolResult<ToolDetails>> {
+  const name = args.name;
+  const subject = args.subject;
+  const triggerWord = args.trigger_word ?? "";
+  const outputDir = args.output_dir ?? "";
+  const categoriesJson = args.categories ?? "";
 
   const configDir = "configs";
   fs.mkdirSync(configDir, { recursive: true });
@@ -20,7 +54,7 @@ async function createConfig(
 
   if (fs.existsSync(configPath)) {
     throw new Error(
-       "Config " + configPath + " already exists. Use update_config to modify it.",
+      "Config " + configPath + " already exists. Use update_config to modify it.",
     );
   }
 
@@ -28,7 +62,9 @@ async function createConfig(
   try {
     categories = JSON.parse(categoriesJson) as Record<string, string>;
   } catch {
-    throw new Error("categories must be a JSON object, e.g. '{\"logos\": \"Band logos\"}'");
+    throw new Error(
+      "categories must be a JSON object, e.g. '{\"logos\": \"Band logos\"}'",
+    );
   }
 
   const config: Record<string, unknown> = {
@@ -44,55 +80,54 @@ async function createConfig(
       target_count: "50-150",
       min_resolution: 512,
       training_resolution: 1024,
-      },
-      };
+    },
+  };
 
   const yamlText = yaml.stringify(config, {
     lineWidth: 0,
-    });
+  });
 
   fs.writeFileSync(configPath, yamlText);
 
   return {
-    content: [{ type: "text" as const, text: "Created config: " + configPath + "\n\n" + yamlText }],
+    content: [
+      {
+        type: "text",
+        text: "Created config: " + configPath + "\n\n" + yamlText,
+      },
+    ],
     details: { ok: true, path: configPath },
-    };
+  };
 }
 
-/**
- * Load and return a dataset YAML config.
- */
 async function readConfig(
-  args: Record<string, unknown>,
-): Promise<ReturnType<typeof import("./response.js").textResult>> {
-  const configPath = String(args.path ?? "");
+  args: ReadConfigParams,
+): Promise<AgentToolResult<ToolDetails>> {
+  const configPath = args.path;
 
   if (!fs.existsSync(configPath)) {
     throw new Error("Config not found: " + configPath);
-      }
+  }
 
   const yamlText = fs.readFileSync(configPath, "utf-8");
   const parsed = yaml.parse(yamlText);
   const newYaml = yaml.stringify(parsed, { lineWidth: 0 });
 
   return {
-    content: [{ type: "text" as const, text: newYaml }],
+    content: [{ type: "text", text: newYaml }],
     details: { ok: true, path: configPath },
-   };
+  };
 }
 
-/**
- * Update fields in a dataset YAML config.
- */
 async function updateConfig(
-  args: Record<string, unknown>,
-): Promise<ReturnType<typeof import("./response.js").textResult>> {
-  const configPath = String(args.path ?? "");
-  const updatesJson = String(args.updates ?? "");
+  args: UpdateConfigParams,
+): Promise<AgentToolResult<ToolDetails>> {
+  const configPath = args.path;
+  const updatesJson = args.updates;
 
   if (!fs.existsSync(configPath)) {
     throw new Error("Config not found: " + configPath);
-       }
+  }
 
   const yamlText = fs.readFileSync(configPath, "utf-8");
   const config = yaml.parse(yamlText) as Record<string, unknown>;
@@ -100,14 +135,14 @@ async function updateConfig(
   let updates: Record<string, unknown>;
   try {
     updates = JSON.parse(updatesJson) as Record<string, unknown>;
-     } catch {
+  } catch {
     throw new Error("updates must be a JSON object");
-       }
+  }
 
   function deepMerge(
     base: Record<string, unknown>,
     upd: Record<string, unknown>,
-   ) {
+  ) {
     for (const [key, value] of Object.entries(upd)) {
       if (
         typeof value === "object" &&
@@ -115,14 +150,14 @@ async function updateConfig(
         !Array.isArray(value) &&
         typeof base[key] === "object" &&
         base[key] !== null &&
-         !Array.isArray(base[key])
-       ) {
-         deepMerge(base[key] as Record<string, unknown>, value as Record<string, unknown>);
-         } else {
+        !Array.isArray(base[key])
+      ) {
+        deepMerge(base[key] as Record<string, unknown>, value as Record<string, unknown>);
+      } else {
         (base as Record<string, unknown>)[key] = value;
-         }
-       }
       }
+    }
+  }
 
   deepMerge(config, updates);
 
@@ -131,35 +166,36 @@ async function updateConfig(
   fs.writeFileSync(configPath, newYaml);
 
   return {
-    content: [{ type: "text" as const, text: "Updated " + configPath + ":\n\n" + newYaml }],
+    content: [
+      { type: "text", text: "Updated " + configPath + ":\n\n" + newYaml },
+    ],
     details: { ok: true, path: configPath },
-      };
+  };
 }
 
-/**
- * List available dataset configs in configs/.
- */
 async function listConfigs(
-  args: Record<string, unknown>,
-): Promise<ReturnType<typeof import("./response.js").textResult>> {
+  _args: ListConfigParams,
+): Promise<AgentToolResult<ToolDetails>> {
   const configDir = "configs";
 
   if (!fs.existsSync(configDir)) {
     return {
-       content: [{ type: "text" as const, text: "No configs/ directory found." }],
+      content: [{ type: "text", text: "No configs/ directory found." }],
       details: { ok: true },
-       };
-     }
+    };
+  }
 
   const entries = fs.readdirSync(configDir);
-  const configs = entries.filter((e) => e.endsWith(".yaml") || e.endsWith(".yml"));
+  const configs = entries.filter(
+    (e) => e.endsWith(".yaml") || e.endsWith(".yml"),
+  );
 
   if (configs.length === 0) {
     return {
-      content: [{ type: "text" as const, text: "No config files found in configs/" }],
+      content: [{ type: "text", text: "No config files found in configs/" }],
       details: { ok: true },
-      };
-    }
+    };
+  }
 
   configs.sort();
   const lines: string[] = [];
@@ -169,47 +205,53 @@ async function listConfigs(
     const cfg = yaml.parse(content) as Record<string, unknown>;
     const cfgName2 = (cfg.name as string) ?? cfgName.replace(/\.(yaml|yml)$/, "");
     const subject = (cfg.subject as string) ?? "unknown";
-    lines.push("     " + cfgPath + " \u2014 " + cfgName2 + ": " + subject);
-    }
+    lines.push(
+      "  " + cfgPath + " \u2014 " + cfgName2 + ": " + subject,
+    );
+  }
 
   return {
-    content: [{ type: "text" as const, text: "Available configs:\n" + lines.join("\n") }],
+    content: [
+      {
+        type: "text",
+        text: "Available configs:\n" + lines.join("\n"),
+      },
+    ],
     details: { ok: true },
-     };
+  };
 }
 
 // ─── Tool Definitions ───────────────────────────────────────────────────────
 
-export const createConfigTool = {
+export const createConfigTool = createTool({
   name: "create_config",
   label: "Create Config",
   description:
-       "Create a new dataset YAML config file with name, subject, trigger word, output dir, and categories.",
-  parameters: {} as any,
-  execute: createConfig,
-};
+    "Create a new dataset YAML config file with name, subject, trigger word, output dir, and categories.",
+  parameters: CreateConfigParams,
+  handler: createConfig,
+});
 
-export const readConfigTool = {
+export const readConfigTool = createTool({
   name: "read_config",
   label: "Read Config",
   description: "Load and return a dataset YAML config by path.",
-  parameters: {} as any,
-  execute: readConfig,
-};
+  parameters: ReadConfigParams,
+  handler: readConfig,
+});
 
-export const updateConfigTool = {
+export const updateConfigTool = createTool({
   name: "update_config",
   label: "Update Config",
   description: "Update fields in a dataset YAML config file.",
-  parameters: {} as any,
-  execute: updateConfig,
-};
+  parameters: UpdateConfigParams,
+  handler: updateConfig,
+});
 
-export const listConfigsTool = {
+export const listConfigsTool = createTool({
   name: "list_configs",
   label: "List Configs",
-  description:
-       "List available dataset configs in configs/ directory.",
-  parameters: {} as any,
-  execute: listConfigs,
-};
+  description: "List available dataset configs in configs/ directory.",
+  parameters: ListConfigParams,
+  handler: listConfigs,
+});
